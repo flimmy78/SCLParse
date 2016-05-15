@@ -1,0 +1,4 @@
+its for SCD parse.
+Makefile for main.cpp,it is used to create the App,
+and Makefile.lib is used for creating lib.
+its based on xerces-c lib
