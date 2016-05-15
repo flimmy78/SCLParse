@@ -1,0 +1,120 @@
+
+CC            = gcc
+CXX           = g++
+DEFINES       = -DLIBSCL_EXPORTS
+CFLAGS        = -pipe -g -D_REENTRANT  -W $(DEFINES)
+CXXFLAGS      = -pipe -g -D_REENTRANT  -W $(DEFINES)
+INCPATH       = -I./xercesc
+LINK          = g++
+LFLAGS        = -shared -Wl,-soname,libSCLParser.so.1
+LIBS          = $(SUBLIBS)  -L./lib -L/usr/X11R6/lib -L/usr/lib64 -L/root/Desktop/xerces-c-3.1.3/src/.libs -lxerces-c
+AR            = ar cqs
+RANLIB        = 
+TAR           = tar -cf
+COMPRESS      = gzip -9f
+COPY          = cp -f
+SED           = sed
+COPY_FILE     = $(COPY)
+COPY_DIR      = $(COPY) -r
+STRIP         = 
+INSTALL_FILE  = install -m 644 -p
+INSTALL_DIR   = $(COPY_DIR)
+INSTALL_PROGRAM = install -m 755 -p
+DEL_FILE      = rm -f
+SYMLINK       = ln -f -s
+DEL_DIR       = rmdir
+MOVE          = mv -f
+CHK_DIR_EXISTS= test -d
+MKDIR         = mkdir -p
+
+DESTDIR       = ./lib/
+####### Output directory
+
+#OBJECTS_DIR   = ../temp/TmpGUI/obj/
+
+####### Files
+
+#SOURCES       = main.cpp \
+		
+OBJECTS       = scl.o \
+                SclSAX2Handler.o \
+                Ied.o  
+          
+INCPATH    = ./xercesc
+
+TARGET        = libSCLParser.so.1.0.0
+TARGETA       = ./lib/libSCLParser.a
+TARGETD       = libSCLParser.so.1.0.0
+TARGET0       = libSCLParser.so
+TARGET1       = libSCLParser.so.1
+TARGET2       = libSCLParser.so.1.0
+first: all
+####### Implicit rules
+
+.SUFFIXES: .o .c .cpp .cc .cxx .C
+
+.cpp.o:
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
+
+.cc.o:
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
+
+.cxx.o:
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
+
+.C.o:
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o "$@" "$<"
+
+.c.o:
+	$(CC) -c $(CFLAGS) $(INCPATH) -o "$@" "$<"
+
+
+#main.o: main.cpp scl.o SclSAX2Handler.o
+#	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o main.cpp
+
+scl.o: scl.cpp scl.h Ied.h CheckNotifier.h ProgressNotifier.h SCDparse.h LibSCLParser.h
+	$(CXX) -c $(CXXFLAGS) -fPIC $(INCPATH) -o "$@" "$<"
+
+#SCLParser.o:SCLParser.cpp SCLParser.h
+#	$(CXX) -c $(CXXFLAGS) -fPIC $(INCPATH) -o "$@" "$<"
+
+SclSAX2Handler.o:SclSAX2Handler.cpp SclSAX2Handler.hpp scl.h scl.cpp LibSCLParser.h
+	$(CXX) -c $(CXXFLAGS) -fPIC $(INCPATH) -o "$@" "$<"
+
+Ied.o:Ied.cpp Ied.h
+	$(CXX) -c $(CXXFLAGS) -fPIC $(INCPATH) -o "$@" "$<"
+
+
+
+clean: 
+	-$(DEL_FILE) $(OBJECTS)
+	-$(DEL_FILE) *~ core *.core
+
+all: Makefile  $(TARGET)
+
+$(TARGET):  $(OBJECTS)
+	@$(CHK_DIR_EXISTS) ./lib/ || $(MKDIR) ./lib/ 
+	-$(DEL_FILE) $(TARGET) $(TARGET0) $(TARGET1) $(TARGET2)
+	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(LIBS) $(OBJCOMP)
+	-ln -s $(TARGET) $(TARGET0)
+	-ln -s $(TARGET) $(TARGET1)
+	-ln -s $(TARGET) $(TARGET2)
+	-$(DEL_FILE) ./lib/$(TARGET)
+	-$(DEL_FILE) ./lib/$(TARGET0)
+	-$(DEL_FILE) ./lib/$(TARGET1)
+	-$(DEL_FILE) ./lib/$(TARGET2)
+	-$(MOVE) $(TARGET) $(TARGET0) $(TARGET1) $(TARGET2) ./lib/
+	{ test -z "$(DESTDIR)" || cd "$(DESTDIR)"; } && test $$(gdb --version | sed -e 's,[^0-9]\+\([0-9]\)\.\([0-9]\).*,\1\2,;q') -gt 72 && gdb --nx --batch --quiet -ex 'set confirm off' -ex "save gdb-index ." -ex quit '$(TARGET)' && test -f $(TARGET).gdb-index && objcopy --add-section '.gdb_index=$(TARGET).gdb-index' --set-section-flags '.gdb_index=readonly' '$(TARGET)' '$(TARGET)' && rm -f $(TARGET).gdb-index || true
+
+
+
+staticlib: $(TARGETA)
+
+$(TARGETA):  $(OBJECTS)
+	-$(DEL_FILE) $(TARGETA) 
+	$(AR) $(TARGETA) $(OBJECTS)
+
+
+
+
+
